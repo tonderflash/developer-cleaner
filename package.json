@@ -1,11 +1,9 @@
 {
   "name": "developer-cleaner",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A tool to clean up old node_modules directories and free up disk space",
   "main": "index.js",
-  "bin": {
-    "developer-cleaner": "./index.js"
-  },
+  "bin": "./index.js",
   "scripts": {
     "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
