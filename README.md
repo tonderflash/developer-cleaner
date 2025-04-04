@@ -1,59 +1,67 @@
 # Developer Cleaner
 
-Una herramienta para limpiar directorios `node_modules` antiguos y liberar espacio en disco.
+A tool to clean up old `node_modules` directories and free up disk space.
 
-## Descripción
+## Description
 
-Developer Cleaner es una pequeña herramienta de línea de comandos que permite identificar y eliminar directorios `node_modules` antiguos para liberar espacio en disco. Permite filtrar por año de modificación, lo que te ayuda a mantener solo los proyectos recientes y eliminar los que ya no utilizas.
+Developer Cleaner is a small command-line tool that helps you identify and remove old `node_modules` directories to free up disk space. It allows filtering by modification year, helping you keep only recent projects and remove those you no longer use.
 
-## Características
+## Features
 
-- Búsqueda de directorios `node_modules` en cualquier ubicación
-- Filtrado por año (2023 y anteriores, 2022 y anteriores, etc.)
-- Muestra el tamaño de cada directorio encontrado
-- Interfaz interactiva para seleccionar qué directorios eliminar
-- Confirmación de seguridad antes de eliminar cualquier archivo
+- Search for `node_modules` directories in any location
+- Filter by year (2023 and earlier, 2022 and earlier, etc.)
+- Display size of each found directory
+- Interactive interface to select which directories to remove
+- Safety confirmation before deleting any files
 
-## Instalación
+## Installation
 
-### Instalación local
+### Local Installation
 
 ```bash
-git clone https://github.com/tu-usuario/developer-cleaner.git
+git clone https://github.com/tonderflash/developer-cleaner.git
 cd developer-cleaner
 npm install
 npm link
 ```
 
-### Instalación global (para compartir con amigos)
+### Global Installation (to share with friends)
 
-Para compartir esta herramienta con amigos programadores, puedes publicarla en npm o simplemente compartir el código y que ellos lo instalen localmente.
+You can install this tool globally via npm:
 
-## Uso
+```bash
+npm install -g developer-cleaner
+```
 
-Una vez instalado, puedes ejecutar:
+## Usage
+
+Once installed, you can run:
 
 ```bash
 developer-cleaner
 ```
 
-Sigue las instrucciones interactivas para:
+Follow the interactive prompts to:
 
-1. Seleccionar el directorio base donde buscar (por defecto ~/Developer)
-2. Elegir qué años de node_modules limpiar
-3. Revisar la lista de directorios encontrados
-4. Confirmar la eliminación
+1. Select the base directory to search (defaults to ~/Developer)
+2. Choose which years of node_modules to clean
+3. Review the list of found directories
+4. Confirm deletion
 
-## Precauciones
+## Precautions
 
-- **¡IMPORTANTE!** Esta herramienta elimina directorios. Asegúrate de revisar la lista antes de confirmar.
-- Los directorios eliminados no van a la papelera, se eliminan directamente.
-- Recomendamos hacer una copia de seguridad antes de usar esta herramienta por primera vez.
+- **IMPORTANT!** This tool deletes directories. Make sure to review the list before confirming.
+- Deleted directories do not go to the trash, they are removed directly.
+- We recommend making a backup before using this tool for the first time.
 
-## Contribuir
+## Contributing
 
-Si quieres mejorar esta herramienta, ¡las contribuciones son bienvenidas!
+If you want to improve this tool, contributions are welcome!
 
-## Licencia
+## Language Support
+
+- [Readme en Español](README.es.md)
+
+## License
 
 MIT
