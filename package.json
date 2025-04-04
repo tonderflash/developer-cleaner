@@ -1,6 +1,6 @@
 {
   "name": "developer-cleaner",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A tool to clean up old node_modules directories and free up disk space",
   "main": "index.js",
   "bin": {
