@@ -1,9 +1,11 @@
 {
   "name": "developer-cleaner",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A tool to clean up old node_modules directories and free up disk space",
   "main": "index.js",
-  "bin": "./index.js",
+  "bin": {
+    "developer-cleaner": "index.js"
+  },
   "scripts": {
     "start": "node index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -16,11 +18,22 @@
     "node_modules",
     "cleanup"
   ],
-  "author": "",
+  "author": "tonderflash",
   "license": "MIT",
   "dependencies": {
     "chalk": "^4.1.2",
     "figlet": "^1.5.2",
     "inquirer": "^8.2.5"
-  }
+  },
+  "engines": {
+    "node": ">=12"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tonderflash/developer-cleaner.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tonderflash/developer-cleaner/issues"
+  },
+  "homepage": "https://github.com/tonderflash/developer-cleaner#readme"
 }
