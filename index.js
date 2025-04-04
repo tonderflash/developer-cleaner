@@ -7,6 +7,13 @@ const { execSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
+// Handle command line arguments
+if (process.argv.includes("--version")) {
+  const packageJson = require("./package.json");
+  console.log(packageJson.version);
+  process.exit(0);
+}
+
 // Function to show title
 const showTitle = () => {
   console.log(
@@ -31,6 +38,11 @@ const findNodeModulesByYear = (basePath, year) => {
   }
 
   try {
+    if (!fs.existsSync(basePath)) {
+      console.error(chalk.red(`Error: Directory "${basePath}" does not exist`));
+      return [];
+    }
+
     const excludeNestedFilter = '-not -path "*/node_modules/*/node_modules*"';
     const command = `find ${basePath} -name "node_modules" -type d ${dateFilter} ${excludeNestedFilter} 2>/dev/null`;
 
@@ -38,8 +50,9 @@ const findNodeModulesByYear = (basePath, year) => {
     return result.split("\n").filter((line) => line.trim() !== "");
   } catch (error) {
     console.error(
-      chalk.red("Error al buscar directorios node_modules:"),
-      error.message
+      chalk.yellow(
+        `Warning: Error searching in "${basePath}": ${error.message}`
+      )
     );
     return [];
   }
@@ -77,6 +90,12 @@ const main = async () => {
       name: "basePath",
       message: "In which directory do you want to search for node_modules?",
       default: process.env.HOME + "/Developer",
+      validate: (input) => {
+        if (!input.trim()) {
+          return "Please enter a valid directory path";
+        }
+        return true;
+      },
     },
     {
       type: "list",
@@ -198,5 +217,6 @@ const main = async () => {
 
 // Ejecutar función principal
 main().catch((error) => {
-  console.error(chalk.red("Error:", error));
+  console.error(chalk.red("Error:", error.message));
+  process.exit(1);
 });
