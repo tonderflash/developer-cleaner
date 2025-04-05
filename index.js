@@ -6,6 +6,7 @@ const figlet = require("figlet");
 const { execSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
+const os = require("os");
 
 // Handle command line arguments
 if (process.argv.includes("--version")) {
@@ -13,6 +14,11 @@ if (process.argv.includes("--version")) {
   console.log(packageJson.version);
   process.exit(0);
 }
+
+// Get home directory cross-platform
+const getHomeDir = () => {
+  return os.homedir();
+};
 
 // Function to show title
 const showTitle = () => {
@@ -40,31 +46,42 @@ const showTitle = () => {
 
 // Function to get common development directories
 const getCommonDevDirectories = () => {
-  const home = process.env.HOME;
+  const home = getHomeDir();
+  const isWindows = process.platform === "win32";
+
   const commonDirs = [
     path.join(home, "Developer"),
     path.join(home, "Projects"),
     path.join(home, "workspace"),
     path.join(home, "git"),
     path.join(home, "repos"),
-    path.join(home, "Documents/Projects"),
-    path.join(home, "Desktop/Projects"),
+    path.join(home, "Documents", "Projects"),
+    path.join(home, "Desktop", "Projects"),
   ];
 
-  return commonDirs.filter((dir) => fs.existsSync(dir));
+  // Add Windows-specific paths
+  if (isWindows) {
+    const drives = ["C:", "D:"];
+    drives.forEach((drive) => {
+      commonDirs.push(path.join(drive, "Projects"));
+      commonDirs.push(path.join(drive, "Development"));
+      commonDirs.push(path.join(drive, "workspace"));
+    });
+  }
+
+  return commonDirs.filter((dir) => {
+    try {
+      return fs.existsSync(dir);
+    } catch (error) {
+      return false;
+    }
+  });
 };
 
 // Function to find node_modules by year
 const findNodeModulesByYear = (basePath, year) => {
   let dateFilter = "";
-
-  if (year === "all") {
-    dateFilter = "";
-  } else {
-    const startDate = `${year}-01-01`;
-    const endDate = `${parseInt(year) + 1}-01-01`;
-    dateFilter = `-newermt "${startDate}" -not -newermt "${endDate}"`;
-  }
+  const isWindows = process.platform === "win32";
 
   try {
     if (!fs.existsSync(basePath)) {
@@ -72,11 +89,44 @@ const findNodeModulesByYear = (basePath, year) => {
       return [];
     }
 
-    const excludeNestedFilter = '-not -path "*/node_modules/*/node_modules*"';
-    const command = `find "${basePath}" -name "node_modules" -type d ${dateFilter} ${excludeNestedFilter} 2>/dev/null`;
+    if (isWindows) {
+      // Windows-specific implementation using PowerShell
+      let command;
+      if (year === "all") {
+        command = `powershell -Command "Get-ChildItem -Path '${basePath}' -Filter 'node_modules' -Directory -Recurse | Where-Object { $_.FullName -notmatch 'node_modules\\\\node_modules' } | Select-Object -ExpandProperty FullName"`;
+      } else {
+        const startDate = new Date(`${year}-01-01`).toISOString();
+        const endDate = new Date(`${parseInt(year) + 1}-01-01`).toISOString();
+        command = `powershell -Command "Get-ChildItem -Path '${basePath}' -Filter 'node_modules' -Directory -Recurse | Where-Object { $_.FullName -notmatch 'node_modules\\\\node_modules' -and $_.LastWriteTime -ge '${startDate}' -and $_.LastWriteTime -lt '${endDate}' } | Select-Object -ExpandProperty FullName"`;
+      }
 
-    const result = execSync(command, { encoding: "utf-8" }).trim();
-    return result.split("\n").filter((line) => line.trim() !== "");
+      try {
+        const result = execSync(command, { encoding: "utf-8" }).trim();
+        return result.split("\n").filter((line) => line.trim() !== "");
+      } catch (error) {
+        console.error(
+          chalk.yellow(
+            `Warning: Error searching in "${basePath}": ${error.message}`
+          )
+        );
+        return [];
+      }
+    } else {
+      // Unix implementation
+      if (year === "all") {
+        dateFilter = "";
+      } else {
+        const startDate = `${year}-01-01`;
+        const endDate = `${parseInt(year) + 1}-01-01`;
+        dateFilter = `-newermt "${startDate}" -not -newermt "${endDate}"`;
+      }
+
+      const excludeNestedFilter = '-not -path "*/node_modules/*/node_modules*"';
+      const command = `find "${basePath}" -name "node_modules" -type d ${dateFilter} ${excludeNestedFilter} 2>/dev/null`;
+
+      const result = execSync(command, { encoding: "utf-8" }).trim();
+      return result.split("\n").filter((line) => line.trim() !== "");
+    }
   } catch (error) {
     console.error(
       chalk.yellow(
@@ -89,9 +139,18 @@ const findNodeModulesByYear = (basePath, year) => {
 
 // Function to get directory size
 const getDirectorySize = (dirPath) => {
+  const isWindows = process.platform === "win32";
+
   try {
-    const command = `du -sh "${dirPath}" 2>/dev/null`;
-    return execSync(command, { encoding: "utf-8" }).trim().split("\t")[0];
+    let command;
+    if (isWindows) {
+      command = `powershell -Command "((Get-ChildItem -Path '${dirPath}' -Recurse | Measure-Object -Property Length -Sum).Sum / 1MB).ToString('N2') + ' MB'"`;
+    } else {
+      command = `du -sh "${dirPath}" 2>/dev/null`;
+    }
+
+    const result = execSync(command, { encoding: "utf-8" }).trim();
+    return isWindows ? result : result.split("\t")[0];
   } catch (error) {
     return "N/A";
   }
@@ -99,8 +158,16 @@ const getDirectorySize = (dirPath) => {
 
 // Function to remove directory
 const removeDirectory = (dirPath) => {
+  const isWindows = process.platform === "win32";
+
   try {
-    const command = `rm -rf "${dirPath}"`;
+    let command;
+    if (isWindows) {
+      command = `powershell -Command "Remove-Item -Path '${dirPath}' -Recurse -Force"`;
+    } else {
+      command = `rm -rf "${dirPath}"`;
+    }
+
     execSync(command);
     return true;
   } catch (error) {
@@ -142,11 +209,15 @@ const main = async () => {
           type: "input",
           name: "customPath",
           message: "Enter the directory path:",
-          default: process.env.HOME,
+          default: getHomeDir(),
           validate: (input) => {
             if (!input.trim()) return "Please enter a valid directory path";
-            if (!fs.existsSync(input)) return "Directory does not exist";
-            return true;
+            try {
+              if (!fs.existsSync(input)) return "Directory does not exist";
+              return true;
+            } catch (error) {
+              return "Invalid directory path";
+            }
           },
         },
       ]);
@@ -160,11 +231,15 @@ const main = async () => {
         type: "input",
         name: "customPath",
         message: "Enter the directory path to search:",
-        default: process.env.HOME,
+        default: getHomeDir(),
         validate: (input) => {
           if (!input.trim()) return "Please enter a valid directory path";
-          if (!fs.existsSync(input)) return "Directory does not exist";
-          return true;
+          try {
+            if (!fs.existsSync(input)) return "Directory does not exist";
+            return true;
+          } catch (error) {
+            return "Invalid directory path";
+          }
         },
       },
     ]);
